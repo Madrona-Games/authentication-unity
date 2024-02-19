@@ -43,7 +43,7 @@ namespace Cdm.Authentication.OAuth2
         /// <exception cref="AuthorizationCodeRequestException"></exception>
         /// <exception cref="AccessTokenRequestException"></exception>
         /// <exception cref="AuthenticationException"></exception>
-        public async Task<AccessTokenResponse> AuthenticateAsync(CancellationToken cancellationToken = default)
+        public async Task<AccessTokenResponse> AuthenticateAsync(CancellationToken cancellationToken = default, bool skipExchange = false)
         {
             using var timeoutCancellationTokenSource = new CancellationTokenSource(loginTimeout);
 
@@ -72,6 +72,14 @@ namespace Cdm.Authentication.OAuth2
 #if UNITY_EDITOR
                     Debug.Log($"Redirect URL: {browserResult.redirectUrl}");
 #endif
+                    if (skipExchange)
+                    {
+                        AccessTokenResponse acr = new()
+                        {
+                            accessToken = browserResult.redirectUrl.ToString().Split('?')[1]
+                        };
+                        return acr;
+                    }
                     return await _client.ExchangeCodeForAccessTokenAsync(browserResult.redirectUrl, cancellationToken);
                 }
 
